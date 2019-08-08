@@ -1,0 +1,45 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: master
+    spec:
+      containers:
+      - name: master
+        # You can provide your own images with registry URL like below 
+        # image: gcr.io/jenkins-204008/jenkins:latest
+        image: jenkins/jenkins
+        ports:
+        - containerPort: 8080
+        - containerPort: 50000
+        livenessProbe:
+          httpGet:
+            path: /login
+            port: 8080
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: /login
+            port: 8080
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 5
+        volumeMounts:
+          - name: jenkins-home
+            mountPath: /var/jenkins_home
+        volumes:
+        - name: jenkins-home
+          emptyDir: {}
+        env:
+        - name: JAVA_OPTS
+          value: '-Xmx1400m'
